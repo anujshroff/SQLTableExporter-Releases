@@ -1,3 +1,7 @@
+## v1.1
+Improvements:
+- Minor code reorganization. No notable changes.
+
 ## v1.0
 New Features:
 - Export SQL tables to CSV files
