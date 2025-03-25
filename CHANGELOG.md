@@ -1,3 +1,7 @@
+## v1.3
+Bug Fixes:
+- Fix progress tracking during post export phases
+
 ## v1.2
 New Features:
 - Add optional where condition parameterized input
