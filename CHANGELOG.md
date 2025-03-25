@@ -1,3 +1,14 @@
+## v1.2
+New Features:
+- Add optional where condition parameterized input
+- Add optional archive feature
+- Add optional Azure blob storage upload feature
+  - DefaultAzureCredential
+  - SAS URL
+
+Improvements:
+- Use proper exit codes for success and failure
+
 ## v1.1
 Improvements:
 - Minor code reorganization. No notable changes.

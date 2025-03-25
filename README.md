@@ -1,6 +1,6 @@
 # SQL Table Exporter
 
-A high-performance .NET utility for exporting large SQL Server tables to CSV files with built-in pagination, restartability, and schema script generation.
+A high-performance .NET utility for exporting large SQL Server tables to CSV files with built-in pagination, restartability, schema script generation, and ultra-compressed archiving.
 
 ## Features
 
@@ -10,6 +10,8 @@ A high-performance .NET utility for exporting large SQL Server tables to CSV fil
 - **Restart Capability**: Resume interrupted exports from the last saved position
 - **Schema Script Generation**: Automatically creates table schema scripts
 - **Primary Key Detection**: Automatically detects and uses primary keys for ordering
+- **Ultra Compression**: Optionally archives output using ZIP format with LZMA compression
+- **Azure Blob Storage**: Upload export results directly to Azure Blob Storage
 
 ## Requirements
 
@@ -60,7 +62,7 @@ SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authenti
 | Option                   | Description                                             | Default        |
 |--------------------------|---------------------------------------------------------|----------------|
 | `-c, --connection`       | Connection string to SQL database                       | Required       |
-| `-o, --output`           | Output directory for CSV files                          | Current dir    |
+| `-o, --output`           | Output directory for CSV files                          | schema_table_export |
 | `-s, --schema`           | Database schema name                                    | Required       |
 | `-t, --table`            | Table name to export                                    | Required       |
 | `--order-by`             | Column(s) to order by during export                     | Primary key    |
@@ -72,6 +74,9 @@ SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authenti
 | `--restart`              | Restart from previous export progress                   | False          |
 | `--no-progress-tracking` | Disable progress tracking                               | False          |
 | `--no-schema-script`     | Disable schema script generation                        | False          |
+| `--archive`              | Archive the output directory after export               | False          |
+| `--archive-path`         | Custom path for the archive file                        | schema_table_export.zip |
+| `--azure-blob-storage`   | Azure Blob Storage URL for uploading export results     | None           |
 
 ## Self-Management Commands
 
@@ -108,6 +113,7 @@ The tool produces the following files:
 - **CSV Files**: `{prefix}_{number}.csv` - Each file contains up to the specified maximum rows
 - **Schema Script**: `{prefix}_schema.sql` - SQL script to recreate the table structure
 - **Progress File**: `{schema}_{table}_export_progress.json` - Used for tracking and restarting exports
+- **Archive File**: `{schema}_{table}_export.zip` - If archiving is enabled
 
 ## Advanced Features
 
@@ -136,6 +142,39 @@ The tool can generate a comprehensive SQL script that recreates the table struct
 - Indexes
 - Check constraints
 
+### Archive Compression
+
+When the `--archive` option is enabled, the tool will:
+1. Export the data to CSV files in the specified output directory
+2. Create a highly compressed archive of all output files using ZIP format with LZMA compression
+3. Generate detailed compression statistics showing space savings
+
+The archiving feature ensures maximum space efficiency with the following approach:
+- Uses ZIP file format, which is compatible with most standard archiving tools
+- Applies LZMA compression for maximum compression ratio
+- Provides progress reporting during the archiving process
+- Optimized for best compression ratio rather than speed
+
+**Note**: The archiving operation is considered a critical part of the process. If archiving fails, the entire export operation will report failure. This ensures data integrity for archival purposes.
+
+### Azure Blob Storage Integration
+
+The `--azure-blob-storage` option allows you to upload export results directly to Azure Blob Storage:
+
+- **Intelligent URL Parsing**: Automatically detects and handles regular URLs (for managed identity) or SAS URLs
+- **Flexible Authentication**: Supports managed identity or SAS token authentication
+- **Directory Structure Preservation**: Maintains the folder structure when uploading files
+- **Configurable Upload Behavior**: 
+  - With `--archive` option: Only uploads the archive file
+  - Without `--archive`: Uploads all CSV files preserving directory structure
+- **Detailed Progress Reporting**: Shows upload speed, estimated time, and total progress
+
+The Azure Blob Storage URL must follow one of these formats:
+- Regular URL (managed identity): `https://{account}.blob.core.windows.net/{container}/{optional-folder-path}`
+- SAS URL: `https://{account}.blob.core.windows.net/{container}/{optional-folder-path}?{sas-token}`
+
+**Note**: When using the managed identity option, the application must run in an environment with access to Azure Active Directory, such as an Azure VM, App Service, or local environment with Azure CLI authentication.
+
 ## Performance Considerations
 
 - **Batch Size**: Adjust the `-b, --batch-size` parameter based on your table structure. Smaller batches reduce memory usage but increase the number of queries.
@@ -149,5 +188,13 @@ The tool has built-in error handling for common issues:
 - Permission issues
 - Timeout errors
 - Data type conversion challenges
+- Archiving failures
 
 If an error occurs, the tool will display the error message and stack trace. When using the restart feature, it will resume from the last successfully exported file.
+
+## Default Directory Structure
+
+By default, the tool will:
+1. Create a directory named `{schema}_{table}_export` if no output directory is specified
+2. Ensure the output directory is empty before starting (unless using `--restart`)
+3. If archiving is enabled, create an archive file named `{schema}_{table}_export.zip` in the current directory
