@@ -1,3 +1,7 @@
+## v1.4
+New Features:
+- Optional snapshot isolation mode (--snapshot-isolation)
+
 ## v1.3
 Bug Fixes:
 - Fix progress tracking during post export phases

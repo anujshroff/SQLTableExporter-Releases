@@ -32,51 +32,84 @@ SQLTableExporter [OPTIONS] [OUTPUT_DIRECTORY]
 
 ### Basic Examples
 
-Export a table with default settings:
+Minimum required parameters:
 ```bash
-SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authentication=Active Directory Default;" -s dbo -t Users --order-by "Id"
+SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authentication=Active Directory Default;" -s dbo -t Products
 ```
 
 Export to a specific directory:
 ```bash
-SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authentication=Active Directory Default;" -s dbo -t Stats --order-by "User" -o ./exports
+SQLTableExporter -c "connection-string" -s dbo -t Products -o ./exports
 ```
 
-Specify connection string:
+Use snapshot isolation for a consistent view of data during export:
 ```bash
-SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authentication=Active Directory Default;" -s dbo -t Products -o ./exports
+SQLTableExporter -c "connection-string" -s dbo -t Orders --snapshot-isolation
 ```
 
-Customize export parameters:
+Use parameterized WHERE conditions for safer queries:
 ```bash
-SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authentication=Active Directory Default;" -s dbo -t Orders --order-by "OrderDate, OrderId" --rows 500000 ./exports
+SQLTableExporter -c "connection-string" -s dbo -t Orders -w "OrderDate > :minDate AND Total > :minTotal" --param minDate=2023-01-01 --param minTotal=1000
+```
+
+Customize performance settings:
+```bash
+SQLTableExporter -c "connection-string" -s dbo -t LargeTable -b 100000 -d 100 --timeout 7200
+```
+
+Customize file chunking:
+```bash
+SQLTableExporter -c "connection-string" -s dbo -t Orders --rows 500000
+```
+
+Export without progress tracking or schema script generation:
+```bash
+SQLTableExporter -c "connection-string" -s dbo -t Products --no-progress-tracking --no-schema-script
 ```
 
 Resume a previously interrupted export:
 ```bash
-SQLTableExporter -c "Server=myserver.database.windows.net;Database=mydb;Authentication=Active Directory Default;" -s dbo -t LargeTable --restart
+SQLTableExporter -c "connection-string" -s dbo -t LargeTable --restart
+```
+
+Archive output:
+```bash
+SQLTableExporter -c "connection-string" -s dbo -t Orders --archive
+```
+
+Upload export results to Azure Blob Storage:
+```bash
+SQLTableExporter -c "connection-string" -s dbo -t Products --azure-blob-storage "https://mystorageaccount.blob.core.windows.net/mycontainer"
+```
+
+Upload archived export results to Azure Blob Storage:
+```bash
+SQLTableExporter -c "connection-string" -s dbo -t Products --archive --azure-blob-storage "https://mystorageaccount.blob.core.windows.net/mycontainer"
 ```
 
 ## Command-Line Options
 
-| Option                   | Description                                             | Default        |
-|--------------------------|---------------------------------------------------------|----------------|
-| `-c, --connection`       | Connection string to SQL database                       | Required       |
-| `-o, --output`           | Output directory for CSV files                          | schema_table_export |
-| `-s, --schema`           | Database schema name                                    | Required       |
-| `-t, --table`            | Table name to export                                    | Required       |
-| `--order-by`             | Column(s) to order by during export                     | Primary key    |
-| `-p, --prefix`           | Prefix for output CSV files                             | Table name     |
-| `-r, --rows`             | Maximum rows per CSV file                               | 1,000,000      |
-| `-b, --batch-size`       | Number of rows to fetch per query                       | 5,000          |
-| `-d, --delay`            | Delay in milliseconds between query batches             | 10             |
-| `--timeout`              | Command timeout in seconds                              | 3,600          |
-| `--restart`              | Restart from previous export progress                   | False          |
-| `--no-progress-tracking` | Disable progress tracking                               | False          |
-| `--no-schema-script`     | Disable schema script generation                        | False          |
-| `--archive`              | Archive the output directory after export               | False          |
-| `--archive-path`         | Custom path for the archive file                        | schema_table_export.zip |
-| `--azure-blob-storage`   | Azure Blob Storage URL for uploading export results     | None           |
+| Option                   | Description                                                      | Default        |
+|--------------------------|------------------------------------------------------------------|----------------|
+| `-c, --connection`       | Connection string to SQL database                                | Required       |
+| `-o, --output`           | Output directory for CSV files                                   | schema_table_export |
+| `-s, --schema`           | Database schema name                                             | Required       |
+| `-t, --table`            | Table name to export                                             | Required       |
+| `--order-by`             | Column(s) to order by during export                              | Primary key    |
+| `-p, --prefix`           | Prefix for output CSV files                                      | Table name     |
+| `-r, --rows`             | Maximum rows per CSV file                                        | 1,000,000      |
+| `-b, --batch-size`       | Number of rows to fetch per query                                | 5,000          |
+| `-d, --delay`            | Delay in milliseconds between query batches                      | 10             |
+| `--timeout`              | Command timeout in seconds                                       | 3,600          |
+| `--restart`              | Restart from previous export progress                            | False          |
+| `--no-progress-tracking` | Disable progress tracking                                        | False          |
+| `--no-schema-script`     | Disable schema script generation                                 | False          |
+| `--snapshot-isolation`   | Use snapshot isolation for consistent view of data during export | False |
+| `--archive`              | Archive the output directory after export                        | False          |
+| `--archive-path`         | Custom path for the archive file                                 | schema_table_export.zip |
+| `--azure-blob-storage`   | Azure Blob Storage URL for uploading export results              | None           |
+| `-w, --where`            | Optional WHERE condition to filter data                          | None           |
+| `--param`                | Parameter value for WHERE condition                              | None           |
 
 ## Self-Management Commands
 
