@@ -1,3 +1,7 @@
+## v1.5
+Improvements:
+- Updated dependencies
+
 ## v1.4
 New Features:
 - Optional snapshot isolation mode (--snapshot-isolation)
