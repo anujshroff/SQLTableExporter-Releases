@@ -1,3 +1,7 @@
+## v1.7
+Improvements:
+- Updated dependencies
+
 ## v1.6
 Improvements:
 - Updated dependencies

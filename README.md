@@ -15,7 +15,7 @@ A high-performance .NET utility for exporting large SQL Server tables to CSV fil
 
 ## Requirements
 
-- .NET 9.0 or later
+- .NET 10.0 or later
 - Windows operating system
 - SQL Server database access
 - Appropriate permissions to read from the tables you want to export
