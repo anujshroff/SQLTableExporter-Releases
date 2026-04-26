@@ -1,3 +1,12 @@
+## v1.9
+Bug Fixes:
+- Addressed breaking changes from SharpCompress update
+- Fix byte[] columns (timestamp/rowversion, varbinary, binary, image) exporting as the literal "System.Byte[]" instead of their value
+
+## v1.8
+Improvements:
+- Updated dependencies
+
 ## v1.7
 Improvements:
 - Updated dependencies
